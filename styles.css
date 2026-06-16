@@ -234,7 +234,8 @@ h3 {
 }
 
 .button,
-.text-link {
+.text-link
+.text-link-back{
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -254,6 +255,10 @@ h3 {
 
 .button:hover,
 .text-link:hover {
+  transform: translateY(-2px);
+}
+
+.text-link:hover, .text-link-back:hover {
   transform: translateY(-2px);
 }
 
@@ -285,7 +290,7 @@ h3 {
   line-height: 1.72;
 }
 
-.text-link {
+.text-link, .text-link-back {
   width: fit-content;
   border-bottom: 2px solid rgba(109, 127, 79, 0.28);
   color: var(--accent-dark);
@@ -295,13 +300,6 @@ h3 {
 .text-link::after {
   content: "→";
   margin-left: 8px;
-}
-
-.text-link-back {
-  width: fit-content;
-  border-bottom: 2px solid rgba(109, 127, 79, 0.28);
-  color: var(--accent-dark);
-  line-height: 1.4;
 }
 
 .text-link-back::before {
