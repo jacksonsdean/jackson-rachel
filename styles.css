@@ -297,6 +297,12 @@ h3 {
   margin-left: 8px;
 }
 
+.text-link-back::after {
+  content: "←";
+  margin-right: 8px;
+}
+
+
 .cards,
 .content-grid {
   width: 100%;
