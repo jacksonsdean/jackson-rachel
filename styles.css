@@ -115,6 +115,19 @@ h1 {
   word-break: break-word;
 }
 
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
 @media (max-width: 640px) {
   .page {
     padding: 32px 16px;
