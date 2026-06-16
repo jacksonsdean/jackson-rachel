@@ -29,10 +29,10 @@ body {
 .page {
   min-height: 100vh;
   min-height: 100svh;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  justify-items: center;
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 28px;
   padding: 48px 20px;
   text-align: center;
@@ -72,19 +72,17 @@ h1 {
 .content-grid {
   width: 100%;
   max-width: 1200px;
-  min-height: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-  grid-auto-rows: minmax(140px, 1fr);
-  grid-auto-flow: row dense;
+  grid-auto-rows: 1fr;
   gap: 18px;
-  align-self: stretch;
+  align-items: stretch;
 }
 
 .card {
   width: 100%;
+  height: 100%;
   min-width: 0;
-  min-height: 0;
   display: flex;
   text-decoration: none;
   color: inherit;
@@ -103,7 +101,6 @@ h1 {
 
 .card-content {
   width: 100%;
-  min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
