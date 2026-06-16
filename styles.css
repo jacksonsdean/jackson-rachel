@@ -297,10 +297,14 @@ h3 {
   margin-left: 8px;
 }
 
-.text-link-back::after {
+.text-link-back::before {
   content: "←";
   margin-right: 8px;
 }
+
+.text-link-back::after {
+}
+
 
 
 .cards,
