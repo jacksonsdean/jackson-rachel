@@ -136,7 +136,7 @@ h3 {
   overflow: hidden;
   padding: clamp(26px, 5vw, 54px);
   border: 1px solid var(--border);
-  border-radius: clamp(30px, 5vw, 48px);
+  border-radius: clamp(12px, 1vw, 18px);
   background:
     linear-gradient(145deg, rgba(255, 253, 248, 0.96), rgba(246, 239, 226, 0.9)),
     var(--surface);
