@@ -14,7 +14,7 @@
   --border: rgba(63, 88, 55, 0.16);
   --shadow: 0 24px 70px rgba(59, 75, 46, 0.16);
   --shadow-soft: 0 14px 36px rgba(59, 75, 46, 0.1);
-  --radius: 28px;
+  --radius: 12px;
 }
 
 * {
