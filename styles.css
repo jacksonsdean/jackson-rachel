@@ -291,6 +291,7 @@ h3 {
 }
 
 .text-link, .text-link-back {
+  text-decoration:none;
   width: fit-content;
   border-bottom: 2px solid rgba(109, 127, 79, 0.28);
   color: var(--accent-dark);
