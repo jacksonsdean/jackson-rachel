@@ -28,10 +28,12 @@ body {
 
 .page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center;
+  align-items: stretch;
+  gap: 28px;
   padding: 48px 20px;
   text-align: center;
 }
@@ -43,7 +45,6 @@ body {
 
 .hero {
   max-width: 720px;
-  margin-bottom: 28px;
 }
 
 .eyebrow {
@@ -67,16 +68,22 @@ h1 {
   color: var(--muted);
 }
 
-.cards {
-  max-width: 680px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.cards,
+.content-grid {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  grid-auto-rows: minmax(160px, 1fr);
   gap: 18px;
+  align-content: stretch;
 }
 
 .card {
-  width: min(100%, 540px);
+  width: 100%;
+  min-height: 100%;
+  display: flex;
   text-decoration: none;
   color: inherit;
   background: var(--surface);
@@ -93,7 +100,12 @@ h1 {
 }
 
 .card-content {
-  padding: 24px;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 32px);
 }
 
 .card h2 {
@@ -103,7 +115,7 @@ h1 {
 }
 
 .card p {
-  margin: 0 0 16px;
+  margin: 0;
   color: var(--muted);
   line-height: 1.55;
 }
@@ -115,25 +127,8 @@ h1 {
   word-break: break-word;
 }
 
-.content-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  align-items: start;
-}
-
-.card {
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
 @media (max-width: 640px) {
   .page {
     padding: 32px 16px;
-  }
-
-  .card-content {
-    padding: 20px;
   }
 }
