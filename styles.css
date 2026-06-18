@@ -274,10 +274,15 @@ h3 {
   color: var(--gold);
 }
 
+.organization-card p,
+.organization-card ul,
+.organization-card li {
+  color: var(--muted);
+}
+
 .organization-card p {
   flex: 1;
   margin: 14px 0 24px;
-  color: var(--muted);
   line-height: 1.72;
 }
 
