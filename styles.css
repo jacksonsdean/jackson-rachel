@@ -259,7 +259,7 @@ h3 {
   gap: 18px;
 }
 
-.organization-card, .detail-card {
+.organization-card, .details-card {
   min-height: 100%;
   display: flex;
   flex-direction: column;
