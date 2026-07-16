@@ -12,9 +12,17 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <style>
-      .schedule-grid {
+      .schedule-layout {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .days-column,
+      .activities-column {
+        display: flex;
+        flex-direction: column;
         gap: 18px;
       }
 
@@ -118,7 +126,7 @@
       }
 
       @media (max-width: 820px) {
-        .schedule-grid {
+        .schedule-layout {
           grid-template-columns: 1fr;
         }
       }
@@ -141,120 +149,103 @@
           <p class="section-note">Here's what to expect over the weekend.</p>
         </div>
 
-        <div class="schedule-grid">
-         <!-- Activities -->
-          <article class="activities-card">
-            <h3>Activities for Down Time</h3>
-            <ul class="activities-list">
-              <li>Write a piece of advice, recommendation, or a memory on the advice tree.</li>
-              <li>
-                Kayaking
-                <span class="activity-note">Saturday only</span>
-              </li>
-              <li>
-                Hiking
-                <ul class="activity-sub">
-                  <li>West Shore Flathead Lake State Park — 1.7 miles</li>
-                  <li>Blacktail Mountain Trail — 7.4 miles</li>
-                </ul>
-              </li>
-              <li>Board Games</li>
-            </ul>
-          </article>
-          
-          <!-- Friday -->
-          <article class="schedule-day">
-            <h3>Friday, July 31</h3>
-            <ul class="schedule-events">
-              <li>
-                <span class="event-time">Any time</span>
-                <span class="event-label">Arrival at Spruce Lodge</span>
-              </li>
-              <li>
-                <span class="event-time">3:00 pm</span>
-                <span class="event-label">Check-in</span>
-              </li>
-              <li>
-                <span class="event-time">5:00 pm</span>
-                <span class="event-label">Dinner</span>
-              </li>
-              <li>
-                <span class="event-time">5:45 pm</span>
-                <span class="event-label">Cake</span>
-              </li>
-            </ul>
-          </article>
+        <div class="schedule-layout">
+          <div class="days-column">
+            <!-- Friday -->
+            <article class="schedule-day">
+              <h3>Friday, July 31</h3>
+              <ul class="schedule-events">
+                <li>
+                  <span class="event-time">5:00 pm</span>
+                  <span class="event-label">Dinner</span>
+                </li>
+                <li>
+                  <span class="event-time">5:45 pm</span>
+                  <span class="event-label">Cake</span>
+                </li>
+              </ul>
+            </article>
 
+            <!-- Saturday -->
+            <article class="schedule-day">
+              <h3>Saturday, August 1</h3>
+              <ul class="schedule-events">
+                <li>
+                  <span class="event-time">8:30–9:30 am</span>
+                  <span class="event-label">Breakfast</span>
+                </li>
+                <li>
+                  <span class="event-time">12:00 pm</span>
+                  <span class="event-label">Lunch</span>
+                </li>
+                <li>
+                  <span class="event-time">4:00 pm</span>
+                  <span class="event-label">Ceremony &amp; DJ starts</span>
+                </li>
+                <li>
+                  <span class="event-time">5:00 pm</span>
+                  <span class="event-label">Cocktail hour</span>
+                </li>
+                <li>
+                  <span class="event-time">6:00 pm</span>
+                  <span class="event-label">Dinner</span>
+                </li>
+                <li>
+                  <span class="event-time">6:30 pm</span>
+                  <span class="event-label">Toasts</span>
+                </li>
+                <li>
+                  <span class="event-time">6:45 pm</span>
+                  <span class="event-label">Cake</span>
+                </li>
+                <li>
+                  <span class="event-time">7:15 pm</span>
+                  <span class="event-label">Dancing</span>
+                </li>
+                <li>
+                  <span class="event-time">10:00 pm</span>
+                  <span class="event-label">DJ ends</span>
+                </li>
+              </ul>
+            </article>
 
-          <!-- Saturday – full width -->
-          <article class="schedule-day">
-            <h3>Saturday, August 1</h3>
-            <ul class="schedule-events">
-              <li>
-                <span class="event-time">8:30–10:30 am</span>
-                <span class="event-label">Breakfast</span>
-              </li>
-              <li>
-                <span class="event-time">12:00 pm</span>
-                <span class="event-label">Lunch</span>
-              </li>
-              <li>
-                <span class="event-time">4:00 pm</span>
-                <span class="event-label">Ceremony</span>
-              </li>
-              <li>
-                <span class="event-time">5:00 pm</span>
-                <span class="event-label">Cocktail hour</span>
-              </li>
-              <li>
-                <span class="event-time">6:00 pm</span>
-                <span class="event-label">Dinner</span>
-              </li>
-              <li>
-                <span class="event-time">6:30 pm</span>
-                <span class="event-label">Toasts</span>
-              </li>
-              <li>
-                <span class="event-time">6:45 pm</span>
-                <span class="event-label">Cake</span>
-              </li>
-              <li>
-                <span class="event-time">7:15 pm</span>
-                <span class="event-label">Dancing</span>
-              </li>
-              <li>
-                <span class="event-time">10:00 pm</span>
-                <span class="event-label">DJ ends</span>
-              </li>
-            </ul>
-          </article>
+            <!-- Sunday -->
+            <article class="schedule-day">
+              <h3>Sunday, August 2</h3>
+              <ul class="schedule-events">
+                <li>
+                  <span class="event-time">8:15 am</span>
+                  <span class="event-label">Memory Circle at Vesper Point</span>
+                </li>
+                <li>
+                  <span class="event-time">9:00 am</span>
+                  <span class="event-label">Breakfast</span>
+                </li>
+              </ul>
+            </article>
+          </div>
 
-          <!-- Sunday -->
-          <article class="schedule-day">
-            <h3>Sunday, August 2</h3>
-            <ul class="schedule-events">
-              <li>
-                <span class="event-time">8:30–10:30 am</span>
-                <span class="event-label">Breakfast</span>
-              </li>
-                            <li>
-                <span class="event-time">11:00 am</span>
-                <span class="event-label">Check-out</span>
-              </li>
-            </ul>
-          </article>
-
-         
-          <!-- Activities 2-->
-          <article class="activities-card">
-            <h3>Other</h3>
-            <ul class="activities-list">
-              <li>
-                <span class="event-time">Sunday, August 2 at 8:15 am</span>
-                <span class="event-label">Memory Sharing Circle at Vesper Point for Anne Robertson, Rachel's Grandma.</span>
-              </li>
-          </article>
-
+          <div class="activities-column">
+            <!-- Activities -->
+            <article class="activities-card">
+              <h3>Activities for Down Time</h3>
+              <ul class="activities-list">
+                <li>Write a piece of advice, recommendation, or a memory on the advice tree</li>
+                <li>
+                  Kayaking
+                  <span class="activity-note">Saturday only</span>
+                </li>
+                <li>
+                  Hiking
+                  <ul class="activity-sub">
+                    <li>West Shore Flathead Lake State Park — 1.7 miles</li>
+                    <li>Blacktail Mountain Trail — 7.4 miles</li>
+                  </ul>
+                </li>
+                <li>Board Games</li>
+              </ul>
+            </article>
+          </div>
         </div>
       </section>
     </main>
