@@ -311,7 +311,7 @@ h3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   grid-auto-rows: 1fr;
-  gap: 18px;
+  gap: 24px;
   align-items: stretch;
 }
 
