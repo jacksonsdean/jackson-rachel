@@ -18,12 +18,18 @@ var CONFIG = {
    * approved files into the public folder yourself. */
   INBOX_FOLDER_ID: "1WikYF5aLxqL1ji4b_AKw1ir80um15Mm_",
 
-  /* Folders the site may list, by key. All must be shared "anyone with the
-   * link", since the browser loads their thumbnails directly. Anything not in
-   * here cannot be read through this endpoint. */
+  /* Folders the site may list, by key. A key can name more than one folder,
+   * in which case they are merged into a single gallery, newest first. All
+   * must be shared "anyone with the link", since the browser loads their
+   * thumbnails directly. Anything not in here cannot be read through this
+   * endpoint — note that the top-level Spruce Lodge folder is deliberately
+   * absent, since it holds our own paperwork. */
   LISTABLE_FOLDERS: {
-    guests: "110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg",
-    spruce: "1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm",
+    guests: ["110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg"],
+    spruce: [
+      "1lsBOh2_uYkF3BpZnkwAUHViKFSLnZhRn",
+      "1Pc-Qao0j1gbqM3Tcn3sX7bpfhsTH8lyl",
+    ],
   },
   MAX_LIST: 300,
 
@@ -103,9 +109,10 @@ function doGet(e) {
  * Cached, since every visitor asks for this and the folders change rarely.
  */
 function listFolder_(folderKey, limit) {
-  var folderId = CONFIG.LISTABLE_FOLDERS[folderKey];
-  if (!folderId) return { ok: false, error: "Unknown folder." };
+  var entry = CONFIG.LISTABLE_FOLDERS[folderKey];
+  if (!entry) return { ok: false, error: "Unknown folder." };
 
+  var folderIds = [].concat(entry);
   limit = Math.max(1, Math.min(CONFIG.MAX_LIST, limit));
 
   var cache = CacheService.getScriptCache();
@@ -115,19 +122,32 @@ function listFolder_(folderKey, limit) {
 
   try {
     var found = [];
-    var files = DriveApp.getFolderById(folderId).getFiles();
-    while (files.hasNext()) {
-      var file = files.next();
-      var mimeType = String(file.getMimeType() || "");
-      var isImage = mimeType.indexOf("image/") === 0;
-      if (!isImage && mimeType.indexOf("video/") !== 0) continue;
-      found.push({
-        id: file.getId(),
-        name: file.getName(),
-        kind: isImage ? "image" : "video",
-        created: file.getDateCreated().getTime(),
-      });
-    }
+    var sources = [];
+    var seen = {};
+
+    folderIds.forEach(function (folderId) {
+      var folder = DriveApp.getFolderById(folderId);
+      sources.push({ id: folderId, name: folder.getName() });
+
+      var files = folder.getFiles();
+      while (files.hasNext()) {
+        var file = files.next();
+        var id = file.getId();
+        if (seen[id]) continue; /* a file can live in both folders */
+        seen[id] = true;
+
+        var mimeType = String(file.getMimeType() || "");
+        var isImage = mimeType.indexOf("image/") === 0;
+        if (!isImage && mimeType.indexOf("video/") !== 0) continue;
+
+        found.push({
+          id: id,
+          name: file.getName(),
+          kind: isImage ? "image" : "video",
+          created: file.getDateCreated().getTime(),
+        });
+      }
+    });
 
     found.sort(function (a, b) {
       return b.created - a.created;
@@ -135,6 +155,7 @@ function listFolder_(folderKey, limit) {
 
     var payload = {
       ok: true,
+      sources: sources,
       files: found.slice(0, limit).map(function (file) {
         return { id: file.id, name: file.name, kind: file.kind };
       }),

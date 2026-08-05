@@ -122,8 +122,18 @@ the card keeps its heading and link.
 Only the folders named in `LISTABLE_FOLDERS` can be read through the endpoint,
 and each one has to be shared "anyone with the link" — the browser loads the
 thumbnails straight from Drive, so a private folder shows nothing to a
-signed-out guest. If the listing fails, each panel falls back to the embedded
-Drive folder view that is in the HTML.
+signed-out guest. Note that the top-level Spruce Lodge folder is deliberately
+not listed: it holds our own paperwork, so `spruce` names the two photo
+subfolders instead.
+
+A key can name **several folders**, as `spruce` does. They are merged into one
+gallery, newest first, and the panel gets one "open in Drive" button per
+folder, labelled with the folder's name. To add another source, add its ID to
+the array and redeploy.
+
+If a listing fails, the panel falls back to the embedded Drive folder view in
+the HTML. Thumbnails load a few at a time and retry before giving up, so the
+fallback only returns if every thumbnail in a panel fails.
 
 **Seeing who sent what:** the uploader's name is prefixed onto the filename,
 so sorting the folder by name groups uploads by person. It's also in each

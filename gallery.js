@@ -262,6 +262,26 @@
     else pump();
   }
 
+  /* A gallery built from several Drive folders cannot have one "open in
+   * Drive" button, so give it one per folder, named after the folder. */
+  function fillActions(panel, sources) {
+    if (!sources || sources.length < 2) return;
+    var actions = panel.querySelector(".gallery-actions");
+    if (!actions) return;
+
+    actions.innerHTML = "";
+    sources.forEach(function (source) {
+      var link = document.createElement("a");
+      link.className = "button";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.href =
+        "https://drive.google.com/drive/folders/" + encodeURIComponent(source.id);
+      link.textContent = source.name;
+      actions.appendChild(link);
+    });
+  }
+
   function fillPanel(panel, files) {
     var wall = panel.querySelector(".photo-wall");
     var fallback = panel.querySelector(".gallery-fallback");
@@ -348,6 +368,7 @@
         }
 
         panel.hidden = false;
+        fillActions(panel, data.sources);
         fillPanel(panel, data.files);
       })
       .catch(function () {

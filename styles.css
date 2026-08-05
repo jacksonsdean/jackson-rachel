@@ -391,6 +391,8 @@ h3 {
 
 .gallery-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: center;
   margin-top: 22px;
 }
