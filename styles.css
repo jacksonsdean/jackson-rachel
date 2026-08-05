@@ -924,6 +924,63 @@ body.has-lightbox {
   color: #a3502f;
 }
 
+.checkbox-field {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 520px;
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  accent-color: var(--accent-dark);
+  cursor: pointer;
+}
+
+.checkbox-label {
+  display: block;
+  font-weight: 700;
+}
+
+.checkbox-hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.file-private {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.file-private input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent-dark);
+  cursor: pointer;
+}
+
+.file-private input:disabled {
+  cursor: default;
+}
+
+.file-private:has(input:checked) {
+  color: var(--accent-dark);
+}
+
 .dropzone {
   display: flex;
   flex-direction: column;

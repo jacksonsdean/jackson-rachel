@@ -55,6 +55,7 @@
   var form = document.getElementById("upload-form");
   var unavailable = document.getElementById("upload-unavailable");
   var nameInput = document.getElementById("uploader-name");
+  var privateAll = document.getElementById("private-all");
   var nameError = document.getElementById("name-error");
   var dropzone = document.getElementById("dropzone");
   var fileInput = document.getElementById("file-input");
@@ -85,6 +86,17 @@
     nameInput.addEventListener("input", function () {
       nameError.hidden = true;
       syncButton();
+    });
+
+    /* The master switch is both a default for new files and a bulk action on
+     * the ones already listed. */
+    privateAll.addEventListener("change", function () {
+      items.forEach(function (item) {
+        if (item.state === "ready" || item.state === "failed") {
+          item.isPrivate = privateAll.checked;
+        }
+      });
+      render();
     });
 
     dropzone.addEventListener("click", function () {
@@ -180,6 +192,8 @@
         state: problem ? "rejected" : "ready",
         message: problem,
         progress: 0,
+        /* Files added while the master switch is on start out private. */
+        isPrivate: privateAll.checked,
       });
       if (problem) rejected += 1;
       else added += 1;
@@ -272,6 +286,24 @@
         row.appendChild(note);
       }
 
+      if (item.state !== "rejected") {
+        var privateLabel = document.createElement("label");
+        privateLabel.className = "file-private";
+
+        var toggle = document.createElement("input");
+        toggle.type = "checkbox";
+        toggle.checked = !!item.isPrivate;
+        toggle.disabled = item.state === "uploading" || item.state === "done";
+        toggle.setAttribute("aria-label", "Keep " + item.file.name + " private");
+        toggle.addEventListener("change", function () {
+          item.isPrivate = toggle.checked;
+        });
+
+        privateLabel.appendChild(toggle);
+        privateLabel.appendChild(document.createTextNode("Private"));
+        row.appendChild(privateLabel);
+      }
+
       if (item.state !== "uploading" && item.state !== "done") {
         var remove = document.createElement("button");
         remove.type = "button";
@@ -342,6 +374,7 @@
       filename: item.file.name,
       mimeType: item.mimeType,
       size: item.file.size,
+      private: !!item.isPrivate,
       origin: window.location.origin,
     }).then(function (data) {
       return data.uploadUrl;
@@ -430,6 +463,7 @@
         filename: item.file.name,
         mimeType: item.mimeType,
         size: item.file.size,
+        private: !!item.isPrivate,
         dataBase64: base64,
         origin: window.location.origin,
       }).then(function () {
@@ -504,10 +538,12 @@
 
     busy = true;
     nameInput.disabled = true;
+    privateAll.disabled = true;
     syncButton();
 
     var succeeded = 0;
     var failed = 0;
+    var succeededPrivate = 0;
 
     /* One at a time: phone uploads over lodge wifi are far more reliable
      * serially than in parallel. */
@@ -525,6 +561,7 @@
             item.state = "done";
             item.message = "";
             succeeded += 1;
+            if (item.isPrivate) succeededPrivate += 1;
             render();
           },
           function (error) {
@@ -540,6 +577,7 @@
     chain.then(function () {
       busy = false;
       nameInput.disabled = false;
+      privateAll.disabled = false;
       syncButton();
 
       if (failed && succeeded) {
@@ -560,7 +598,16 @@
           "Thank you! " +
             succeeded +
             (succeeded === 1 ? " file is" : " files are") +
-            " on the way to us.",
+            " on the way to us." +
+            (succeededPrivate
+              ? " " +
+                (succeededPrivate === succeeded
+                  ? succeeded === 1
+                    ? "It stays"
+                    : "They stay"
+                  : succeededPrivate + " of them stay") +
+                " private."
+              : ""),
           "success"
         );
       }

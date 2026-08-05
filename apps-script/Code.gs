@@ -14,9 +14,15 @@
  */
 
 var CONFIG = {
-  /* The PRIVATE folder guests upload into. Guests cannot read it — you move
-   * approved files into the public folder yourself. */
+  /* The folder guests upload into. Nobody but us can read it — we move the
+   * ones worth showing into the public folder ourselves. */
   INBOX_FOLDER_ID: "1WikYF5aLxqL1ji4b_AKw1ir80um15Mm_",
+
+  /* Where an upload goes when the guest ticks "keep these private". Same
+   * privacy as the inbox as far as guests are concerned; the point is that
+   * these are kept out of the pile we curate the public gallery from, so one
+   * cannot be published by accident. */
+  PRIVATE_FOLDER_ID: "1lfmrbVVMBBGkwXFPF_ORgQOv1AhnYVp6",
 
   /* Folders the site may list, by key. A key can name more than one folder,
    * in which case they are merged into a single gallery, newest first. All
@@ -260,19 +266,33 @@ function validate_(request) {
     "yyyy-MM-dd HH:mm"
   );
 
+  var isPrivate = request.private === true || request.private === "true";
+  var parentId =
+    isPrivate && CONFIG.PRIVATE_FOLDER_ID
+      ? CONFIG.PRIVATE_FOLDER_ID
+      : CONFIG.INBOX_FOLDER_ID;
+
   return {
     uploader: uploader,
     size: size,
     mimeType: mimeType,
+    isPrivate: isPrivate,
+    parentId: parentId,
     metadata: {
       name: uploader + " - " + original,
-      parents: [CONFIG.INBOX_FOLDER_ID],
+      parents: [parentId],
       mimeType: mimeType,
-      description: "Uploaded by " + uploader + " on " + stamp,
+      description:
+        "Uploaded by " +
+        uploader +
+        " on " +
+        stamp +
+        (isPrivate ? " — marked private, do not publish" : ""),
       properties: {
         uploadedBy: uploader,
         uploadedAt: now.toISOString(),
         originalName: original.slice(0, 100),
+        visibility: isPrivate ? "private" : "shareable",
         source: "wedding-site",
       },
     },
@@ -372,7 +392,7 @@ function writeDirect_(file, dataBase64) {
   }
   var bytes = Utilities.base64Decode(String(dataBase64 || ""));
   var blob = Utilities.newBlob(bytes, file.mimeType, file.metadata.name);
-  var created = DriveApp.getFolderById(CONFIG.INBOX_FOLDER_ID).createFile(blob);
+  var created = DriveApp.getFolderById(file.parentId).createFile(blob);
   created.setDescription(file.metadata.description);
   return created.getId();
 }
@@ -387,22 +407,35 @@ function writeDirect_(file, dataBase64) {
  * Set this to run hourly: Triggers -> Add Trigger -> sweepInbox, time-driven.
  */
 function sweepInbox() {
-  var inbox = DriveApp.getFolderById(CONFIG.INBOX_FOLDER_ID);
-  var quarantine = childFolder_(inbox, "_quarantine");
-  var files = inbox.getFiles();
   var moved = 0;
 
-  while (files.hasNext()) {
-    var file = files.next();
-    var mimeType = String(file.getMimeType() || "");
-    var isMedia =
-      mimeType.indexOf("image/") === 0 || mimeType.indexOf("video/") === 0;
-    if (!isMedia || file.getSize() === 0) {
-      file.moveTo(quarantine);
-      moved += 1;
+  uploadFolderIds_().forEach(function (folderId) {
+    var folder = DriveApp.getFolderById(folderId);
+    var quarantine = childFolder_(folder, "_quarantine");
+    var files = folder.getFiles();
+
+    while (files.hasNext()) {
+      var file = files.next();
+      var mimeType = String(file.getMimeType() || "");
+      var isMedia =
+        mimeType.indexOf("image/") === 0 || mimeType.indexOf("video/") === 0;
+      if (!isMedia || file.getSize() === 0) {
+        file.moveTo(quarantine);
+        moved += 1;
+      }
     }
+  });
+
+  console.log("Swept uploads, quarantined " + moved + " file(s).");
+}
+
+/** Every folder guests can upload into. */
+function uploadFolderIds_() {
+  var ids = [CONFIG.INBOX_FOLDER_ID];
+  if (CONFIG.PRIVATE_FOLDER_ID && CONFIG.PRIVATE_FOLDER_ID !== CONFIG.INBOX_FOLDER_ID) {
+    ids.push(CONFIG.PRIVATE_FOLDER_ID);
   }
-  console.log("Swept inbox, quarantined " + moved + " file(s).");
+  return ids;
 }
 
 function childFolder_(parent, name) {
@@ -432,16 +465,20 @@ function notifyNewUploads() {
   var since = Number(props.getProperty("lastNotifiedAt")) || now - 3600000;
 
   var fresh = [];
-  var files = DriveApp.getFolderById(CONFIG.INBOX_FOLDER_ID).getFiles();
-  while (files.hasNext()) {
-    var file = files.next();
-    if (file.getDateCreated().getTime() <= since) continue;
-    fresh.push({
-      name: file.getName(),
-      url: file.getUrl(),
-      size: file.getSize(),
-    });
-  }
+  uploadFolderIds_().forEach(function (folderId) {
+    var isPrivate = folderId === CONFIG.PRIVATE_FOLDER_ID;
+    var files = DriveApp.getFolderById(folderId).getFiles();
+    while (files.hasNext()) {
+      var file = files.next();
+      if (file.getDateCreated().getTime() <= since) continue;
+      fresh.push({
+        name: file.getName(),
+        url: file.getUrl(),
+        size: file.getSize(),
+        isPrivate: isPrivate,
+      });
+    }
+  });
 
   props.setProperty("lastNotifiedAt", String(now));
   if (!fresh.length) return;
@@ -453,17 +490,27 @@ function notifyNewUploads() {
     var who = split > 0 ? item.name.slice(0, split) : "Someone";
     var what = split > 0 ? item.name.slice(split + 3) : item.name;
     if (!byUploader[who]) byUploader[who] = [];
-    byUploader[who].push({ name: what, url: item.url, size: item.size });
+    byUploader[who].push({
+      name: what,
+      url: item.url,
+      size: item.size,
+      isPrivate: item.isPrivate,
+    });
   });
+
+  var privateCount = fresh.filter(function (item) {
+    return item.isPrivate;
+  }).length;
 
   var names = Object.keys(byUploader).sort();
   var subject =
     fresh.length +
     (fresh.length === 1 ? " new wedding photo" : " new wedding uploads") +
     " from " +
-    (names.length === 1 ? names[0] : names.length + " people");
+    (names.length === 1 ? names[0] : names.length + " people") +
+    (privateCount ? " (" + privateCount + " private)" : "");
 
-  var body = ["<p>Fresh in the uploads folder:</p>"];
+  var body = ["<p>Fresh in the uploads folders:</p>"];
   names.forEach(function (who) {
     var items = byUploader[who];
     body.push(
@@ -484,7 +531,9 @@ function notifyNewUploads() {
             escapeHtml_(item.name) +
             "</a> (" +
             Math.max(1, Math.round(item.size / 1048576)) +
-            " MB)</li>"
+            " MB)" +
+            (item.isPrivate ? " <strong>— private</strong>" : "") +
+            "</li>"
         );
       });
       body.push("</ul>");
@@ -496,6 +545,13 @@ function notifyNewUploads() {
       '">Open the uploads folder</a> — move anything you want on the site into ' +
       "the public guest photos folder.</p>"
   );
+  if (privateCount) {
+    body.push(
+      '<p>Anything marked private is in the <a href="https://drive.google.com/drive/folders/' +
+        CONFIG.PRIVATE_FOLDER_ID +
+        '">private uploads folder</a> instead. Those are not for the gallery.</p>'
+    );
+  }
 
   MailApp.sendEmail({
     to: CONFIG.NOTIFY_EMAIL,
