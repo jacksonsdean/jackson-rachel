@@ -50,6 +50,10 @@ var CONFIG = {
   MAX_FILES_PER_HOUR: 300, // circuit breaker against abuse
   MAX_NAME_LENGTH: 60,
   PREVIEW_CACHE_SECONDS: 300,
+
+  /* Where the "new uploads" digest goes. Blank turns notifications off. */
+  NOTIFY_EMAIL: "photos@jackson-rachel.com",
+  NOTIFY_MAX_LISTED: 40, // beyond this the mail summarises instead of listing
 };
 
 /* Extensions we accept, and the type we assume when the browser reports none.
@@ -404,6 +408,107 @@ function sweepInbox() {
 function childFolder_(parent, name) {
   var existing = parent.getFoldersByName(name);
   return existing.hasNext() ? existing.next() : parent.createFolder(name);
+}
+
+/**
+ * Emails a digest of anything new in the inbox since the last run, grouped by
+ * whoever uploaded it.
+ *
+ * This is deliberately not sent at upload time: the script only opens the
+ * upload session, so the bytes have not landed yet when doPost returns, and
+ * one guest sending twenty photos would mean twenty emails. A digest reports
+ * files that actually exist, in one message.
+ *
+ * Set it to run every 15 minutes: Triggers -> Add Trigger ->
+ * notifyNewUploads, time-driven, minutes timer.
+ */
+function notifyNewUploads() {
+  if (!CONFIG.NOTIFY_EMAIL) return;
+
+  var props = PropertiesService.getScriptProperties();
+  var now = new Date().getTime();
+  /* First ever run only looks back an hour, so turning this on does not
+   * mail a summary of everything uploaded so far. */
+  var since = Number(props.getProperty("lastNotifiedAt")) || now - 3600000;
+
+  var fresh = [];
+  var files = DriveApp.getFolderById(CONFIG.INBOX_FOLDER_ID).getFiles();
+  while (files.hasNext()) {
+    var file = files.next();
+    if (file.getDateCreated().getTime() <= since) continue;
+    fresh.push({
+      name: file.getName(),
+      url: file.getUrl(),
+      size: file.getSize(),
+    });
+  }
+
+  props.setProperty("lastNotifiedAt", String(now));
+  if (!fresh.length) return;
+
+  /* Uploads are named "<uploader> - <original filename>". */
+  var byUploader = {};
+  fresh.forEach(function (item) {
+    var split = item.name.indexOf(" - ");
+    var who = split > 0 ? item.name.slice(0, split) : "Someone";
+    var what = split > 0 ? item.name.slice(split + 3) : item.name;
+    if (!byUploader[who]) byUploader[who] = [];
+    byUploader[who].push({ name: what, url: item.url, size: item.size });
+  });
+
+  var names = Object.keys(byUploader).sort();
+  var subject =
+    fresh.length +
+    (fresh.length === 1 ? " new wedding photo" : " new wedding uploads") +
+    " from " +
+    (names.length === 1 ? names[0] : names.length + " people");
+
+  var body = ["<p>Fresh in the uploads folder:</p>"];
+  names.forEach(function (who) {
+    var items = byUploader[who];
+    body.push(
+      "<p><strong>" +
+        escapeHtml_(who) +
+        "</strong> — " +
+        items.length +
+        (items.length === 1 ? " file" : " files") +
+        "</p>"
+    );
+    if (fresh.length <= CONFIG.NOTIFY_MAX_LISTED) {
+      body.push("<ul>");
+      items.forEach(function (item) {
+        body.push(
+          '<li><a href="' +
+            item.url +
+            '">' +
+            escapeHtml_(item.name) +
+            "</a> (" +
+            Math.max(1, Math.round(item.size / 1048576)) +
+            " MB)</li>"
+        );
+      });
+      body.push("</ul>");
+    }
+  });
+  body.push(
+    '<p><a href="https://drive.google.com/drive/folders/' +
+      CONFIG.INBOX_FOLDER_ID +
+      '">Open the uploads folder</a> — move anything you want on the site into ' +
+      "the public guest photos folder.</p>"
+  );
+
+  MailApp.sendEmail({
+    to: CONFIG.NOTIFY_EMAIL,
+    subject: subject,
+    htmlBody: body.join(""),
+  });
+}
+
+function escapeHtml_(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /* ---------------------------------------------------------------- helpers */
