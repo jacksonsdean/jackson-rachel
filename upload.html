@@ -101,6 +101,8 @@
         class="feature-panel gallery-panel"
         id="guest-gallery-panel"
         aria-labelledby="guest-gallery-title"
+        data-gallery-folder="guests"
+        data-gallery-limit="300"
         hidden
       >
         <div class="section-heading">
@@ -109,7 +111,9 @@
           <p>Photos and videos shared by other guests over the weekend.</p>
         </div>
 
-        <div class="drive-gallery-frame">
+        <div class="photo-wall" hidden></div>
+
+        <div class="drive-gallery-frame gallery-fallback">
           <iframe
             id="guest-gallery-frame"
             title="Google Drive gallery of guest photos"
@@ -133,6 +137,7 @@
 
     <script src="config.js"></script>
     <script src="guest-gallery.js"></script>
+    <script src="gallery.js"></script>
     <script src="upload.js"></script>
   </body>
 </html>

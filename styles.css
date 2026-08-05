@@ -430,6 +430,204 @@ h3 {
   font-weight: 700;
 }
 
+/* Gallery grid */
+
+.photo-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  gap: 12px;
+}
+
+.photo-tile {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  padding: 0;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(
+    135deg,
+    rgba(109, 127, 79, 0.16),
+    rgba(185, 129, 67, 0.14)
+  );
+  box-shadow: var(--shadow-soft);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.photo-tile:hover,
+.photo-tile:focus-visible {
+  outline: none;
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px rgba(59, 75, 46, 0.18);
+}
+
+.photo-tile:focus-visible {
+  border-color: var(--accent);
+}
+
+.photo-tile img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 380ms ease;
+}
+
+.photo-tile.is-loaded img {
+  opacity: 1;
+}
+
+/* Play badge, so a video reads as a video before you open it. */
+.photo-tile.is-video::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(35, 49, 39, 0.66) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fffaf1'%3E%3Cpath d='M9 6.5v11l9-5.5z'/%3E%3C/svg%3E")
+    center / 16px no-repeat;
+}
+
+/* Lightbox */
+
+body.has-lightbox {
+  overflow: hidden;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(24, 33, 26, 0.92);
+  backdrop-filter: blur(6px);
+}
+
+.lightbox-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+
+.lightbox-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  max-width: min(1400px, 100%);
+}
+
+.lightbox-media {
+  max-width: 100%;
+  max-height: min(76vh, 900px);
+  display: block;
+  border: 0;
+  border-radius: var(--radius);
+  background: rgba(255, 250, 241, 0.06);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.lightbox-media.is-video {
+  width: min(1100px, 92vw);
+  height: min(62vh, 620px);
+}
+
+.lightbox-caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: baseline;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255, 250, 241, 0.72);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.lightbox-name {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+  color: rgba(255, 250, 241, 0.92);
+}
+
+.lightbox-count {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.lightbox-button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #fffaf1;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(255, 250, 241, 0.12);
+  border: 1px solid rgba(255, 250, 241, 0.22);
+  border-radius: 999px;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.lightbox-button:hover,
+.lightbox-button:focus-visible {
+  outline: none;
+  background: rgba(255, 250, 241, 0.26);
+  transform: scale(1.06);
+}
+
+.lightbox-close {
+  top: clamp(12px, 3vw, 24px);
+  right: clamp(12px, 3vw, 24px);
+  width: 44px;
+  height: 44px;
+  font-size: 1.6rem;
+}
+
+.lightbox-nav {
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin-top: -26px;
+  font-size: 2.2rem;
+  /* the glyphs sit low in their box */
+  padding-bottom: 5px;
+}
+
+.lightbox-nav.is-prev {
+  left: clamp(8px, 2vw, 28px);
+}
+
+.lightbox-nav.is-next {
+  right: clamp(8px, 2vw, 28px);
+}
+
+@media (max-width: 640px) {
+  .photo-wall {
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+    gap: 8px;
+  }
+
+  .lightbox-nav {
+    top: auto;
+    bottom: clamp(12px, 4vw, 28px);
+    margin-top: 0;
+  }
+}
+
 /* Home page photo card */
 
 .photos-panel > * {

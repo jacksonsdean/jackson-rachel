@@ -21,12 +21,12 @@
       <section class="hero gallery-hero" aria-labelledby="gallery-title">
       </section>
 
-      
-
       <section
         class="feature-panel gallery-panel"
         id="guest-gallery-panel"
         aria-labelledby="guest-gallery-title"
+        data-gallery-folder="guests"
+        data-gallery-limit="300"
         hidden
       >
         <div class="section-heading">
@@ -38,7 +38,9 @@
           </p>
         </div>
 
-        <div class="drive-gallery-frame">
+        <div class="photo-wall" hidden></div>
+
+        <div class="drive-gallery-frame gallery-fallback">
           <iframe
             id="guest-gallery-frame"
             title="Google Drive gallery of guest photos"
@@ -59,14 +61,21 @@
         </div>
       </section>
 
-      <section class="feature-panel gallery-panel" aria-labelledby="drive-gallery-title">
+      <section
+        class="feature-panel gallery-panel"
+        aria-labelledby="drive-gallery-title"
+        data-gallery-folder="spruce"
+        data-gallery-limit="120"
+      >
         <div class="section-heading">
           <p class="eyebrow">Photo gallery</p>
           <h2 id="drive-gallery-title">Spruce Lodge</h2>
 
         </div>
 
-        <div class="drive-gallery-frame">
+        <div class="photo-wall" hidden></div>
+
+        <div class="drive-gallery-frame gallery-fallback">
           <iframe
             title="Google Drive gallery of Spruce Lodge photos"
             src="https://drive.google.com/embeddedfolderview?id=1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm#grid"
@@ -89,5 +98,6 @@
 
     <script src="config.js"></script>
     <script src="guest-gallery.js"></script>
+    <script src="gallery.js"></script>
   </body>
 </html>

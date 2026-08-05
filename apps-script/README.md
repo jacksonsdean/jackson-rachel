@@ -118,6 +118,13 @@ for five minutes, and video thumbnails take a moment to generate).
 is decorative — if the script is unreachable the strip just stays hidden and
 the card keeps its heading and link.
 
+**The gallery grids** are built the same way, from `?action=list&folder=...`.
+Only the folders named in `LISTABLE_FOLDERS` can be read through the endpoint,
+and each one has to be shared "anyone with the link" — the browser loads the
+thumbnails straight from Drive, so a private folder shows nothing to a
+signed-out guest. If the listing fails, each panel falls back to the embedded
+Drive folder view that is in the HTML.
+
 **Seeing who sent what:** the uploader's name is prefixed onto the filename,
 so sorting the folder by name groups uploads by person. It's also in each
 file's description, and stored as machine-readable custom properties

@@ -18,9 +18,14 @@ var CONFIG = {
    * approved files into the public folder yourself. */
   INBOX_FOLDER_ID: "1WikYF5aLxqL1ji4b_AKw1ir80um15Mm_",
 
-  /* The PUBLIC folder (shared "anyone with the link"). Only used to build the
-   * little preview strip on the home page. */
-  PUBLIC_FOLDER_ID: "110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg",
+  /* Folders the site may list, by key. All must be shared "anyone with the
+   * link", since the browser loads their thumbnails directly. Anything not in
+   * here cannot be read through this endpoint. */
+  LISTABLE_FOLDERS: {
+    guests: "110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg",
+    spruce: "1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm",
+  },
+  MAX_LIST: 300,
 
   /* Origins allowed to use this endpoint. Keeps the URL from being used as a
    * free upload relay by someone else's page. */
@@ -71,14 +76,20 @@ var EXTENSION_TYPES = {
 /* -------------------------------------------------------------- endpoints */
 
 /**
- * ?action=preview lists the newest files in the PUBLIC folder so the home page
- * can show a small preview strip. With no action, it is a health check: open
- * the /exec URL in a browser and you should see ok: true.
+ * ?action=list&folder=guests&limit=200 lists a public folder so the site can
+ * build its own photo grid. ?action=preview is the same thing with a small
+ * default, used by the home page strip. With no action, it is a health check:
+ * open the /exec URL in a browser and you should see ok: true.
  */
 function doGet(e) {
   var params = (e && e.parameter) || {};
-  if (params.action === "preview") {
-    return jsonOutput_(preview_(Number(params.limit) || 4));
+  if (params.action === "list" || params.action === "preview") {
+    return jsonOutput_(
+      listFolder_(
+        params.folder || "guests",
+        Number(params.limit) || (params.action === "preview" ? 4 : 60)
+      )
+    );
   }
   return jsonOutput_({
     ok: true,
@@ -87,31 +98,33 @@ function doGet(e) {
   });
 }
 
-/** Newest public photos/videos, as {id, name}. Cached, since the home page
- * asks for this on every visit and the folder rarely changes. */
-function preview_(limit) {
-  limit = Math.max(1, Math.min(24, limit));
-  if (!CONFIG.PUBLIC_FOLDER_ID || CONFIG.PUBLIC_FOLDER_ID.indexOf("PASTE_") === 0) {
-    return { ok: false, error: "No public folder configured." };
-  }
+/**
+ * Newest photos/videos in an allowlisted folder, as {id, name, kind}.
+ * Cached, since every visitor asks for this and the folders change rarely.
+ */
+function listFolder_(folderKey, limit) {
+  var folderId = CONFIG.LISTABLE_FOLDERS[folderKey];
+  if (!folderId) return { ok: false, error: "Unknown folder." };
+
+  limit = Math.max(1, Math.min(CONFIG.MAX_LIST, limit));
 
   var cache = CacheService.getScriptCache();
-  var key = "preview-" + limit;
+  var key = "list-" + folderKey + "-" + limit;
   var cached = cache.get(key);
   if (cached) return JSON.parse(cached);
 
   try {
     var found = [];
-    var files = DriveApp.getFolderById(CONFIG.PUBLIC_FOLDER_ID).getFiles();
+    var files = DriveApp.getFolderById(folderId).getFiles();
     while (files.hasNext()) {
       var file = files.next();
       var mimeType = String(file.getMimeType() || "");
-      if (mimeType.indexOf("image/") !== 0 && mimeType.indexOf("video/") !== 0) {
-        continue;
-      }
+      var isImage = mimeType.indexOf("image/") === 0;
+      if (!isImage && mimeType.indexOf("video/") !== 0) continue;
       found.push({
         id: file.getId(),
         name: file.getName(),
+        kind: isImage ? "image" : "video",
         created: file.getDateCreated().getTime(),
       });
     }
@@ -123,14 +136,14 @@ function preview_(limit) {
     var payload = {
       ok: true,
       files: found.slice(0, limit).map(function (file) {
-        return { id: file.id, name: file.name };
+        return { id: file.id, name: file.name, kind: file.kind };
       }),
     };
     cache.put(key, JSON.stringify(payload), CONFIG.PREVIEW_CACHE_SECONDS);
     return payload;
   } catch (error) {
     console.error(error);
-    return { ok: false, error: "Could not read the gallery folder." };
+    return { ok: false, error: "Could not read that folder." };
   }
 }
 
