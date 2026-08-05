@@ -11,7 +11,7 @@ window.WEDDING_CONFIG = {
    * Looks like: https://script.google.com/macros/s/AKfycb.../exec
    */
   uploadEndpoint:
-    "https://script.google.com/macros/s/AKfycbzBhjrY0lGw24jD7ghwbhTWy4zY3H9PQCFQco9txzkpgSiF2eDKGO8jkzYxX082xvEqFw/exec",
+    "https://script.google.com/macros/s/AKfycbwrEYmJIF9B2l8fJRt8WGJfC2_PpoqTZlwnOIcv9XEZocK1BRUqFwSn8zl62Q1bZ0u56Q/exec",
 
   /*
    * Drive folder ID of the PUBLIC guest photo folder (the one shared
