@@ -16,6 +16,7 @@ Two folders, already created and already filled in throughout this repo:
 | Folder | ID | Sharing | Purpose |
 | --- | --- | --- | --- |
 | Uploads (inbox) | `1WikYF5aLxqL1ji4b_AKw1ir80um15Mm_` | **Private** — do not share | Where guest uploads land. Nobody but you can see it. |
+| Private uploads | `1lfmrbVVMBBGkwXFPF_ORgQOv1AhnYVp6` | **Private** — do not share | Uploads the guest ticked "keep these private". Kept out of the pile you curate from, so one cannot be published by accident. |
 | Guest photos (public) | `110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg` | **Anyone with the link → Viewer** | What the website shows. You move the good stuff here. |
 
 Two folders is the whole moderation story: an upload is never publicly visible
