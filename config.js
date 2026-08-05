@@ -10,7 +10,8 @@ window.WEDDING_CONFIG = {
    * The /exec URL of the deployed Apps Script web app.
    * Looks like: https://script.google.com/macros/s/AKfycb.../exec
    */
-  uploadEndpoint: "",
+  uploadEndpoint:
+    "https://script.google.com/macros/s/AKfycbzBhjrY0lGw24jD7ghwbhTWy4zY3H9PQCFQco9txzkpgSiF2eDKGO8jkzYxX082xvEqFw/exec",
 
   /*
    * Drive folder ID of the PUBLIC guest photo folder (the one shared
