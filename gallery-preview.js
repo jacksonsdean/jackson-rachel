@@ -24,12 +24,31 @@
     );
   }
 
+  function hideStrip() {
+    strip.innerHTML = "";
+    strip.hidden = true;
+  }
+
+  /* Put shimmering stand-ins up before the request goes out. They hold the
+   * card's final height, so the page does not lurch when the photos land. */
+  for (var i = 0; i < TILE_COUNT; i += 1) {
+    var placeholder = document.createElement("div");
+    placeholder.className = "preview-tile";
+    strip.appendChild(placeholder);
+  }
+  strip.hidden = false;
+
   fetch(ENDPOINT + "?action=preview&limit=" + TILE_COUNT)
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
-      if (!data.ok || !data.files || !data.files.length) return;
+      if (!data.ok || !data.files || !data.files.length) {
+        hideStrip();
+        return;
+      }
+
+      strip.innerHTML = ""; /* clear the skeletons */
 
       data.files.forEach(function (file) {
         var tile = document.createElement("div");
@@ -61,13 +80,9 @@
         tile.appendChild(image);
         strip.appendChild(tile);
       });
-
-      /* Revealed up front, not on first load: the tiles have a placeholder
-       * gradient to fade from, and images inside a hidden element never
-       * start loading in the first place. */
-      strip.hidden = false;
     })
     .catch(function () {
       /* Preview is decorative — the card still works without it. */
+      hideStrip();
     });
 })();
