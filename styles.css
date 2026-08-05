@@ -397,6 +397,16 @@ h3 {
   margin-top: 22px;
 }
 
+.gallery-note {
+  position: relative;
+  z-index: 1;
+  margin: 18px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
