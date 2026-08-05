@@ -215,7 +215,7 @@
     if (fallback) fallback.hidden = true;
   }
 
-  panels.forEach(function (panel) {
+  function load(panel) {
     var folder = panel.getAttribute("data-gallery-folder");
     var limit = panel.getAttribute("data-gallery-limit") || 120;
 
@@ -230,12 +230,39 @@
         return response.json();
       })
       .then(function (data) {
-        if (!data.ok || !data.files || !data.files.length) return;
+        /* Listing failed: leave the embedded Drive folder view in place. */
+        if (!data.ok || !data.files) return;
+
+        /* Listing worked and the folder is empty: hide the panel outright.
+         * An empty Drive iframe is worse than no section at all. */
+        if (!data.files.length) {
+          panel.hidden = true;
+          return;
+        }
+
         panel.hidden = false;
         fillPanel(panel, data.files);
       })
       .catch(function () {
-        /* Leave the embedded Drive folder view in place. */
+        /* Same as a failed listing — keep the fallback. */
       });
+  }
+
+  panels.forEach(function (panel) {
+    var details = panel.querySelector("details");
+
+    /* A collapsed section loads nothing until it is opened. Beyond saving the
+     * work, it keeps a page with several galleries from asking Drive for
+     * every thumbnail at once. */
+    if (details && !details.open) {
+      details.addEventListener("toggle", function onOpen() {
+        if (!details.open) return;
+        details.removeEventListener("toggle", onOpen);
+        load(panel);
+      });
+      return;
+    }
+
+    load(panel);
   });
 })();

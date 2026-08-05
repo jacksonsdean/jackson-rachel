@@ -67,32 +67,39 @@
         data-gallery-folder="spruce"
         data-gallery-limit="120"
       >
-        <div class="section-heading">
-          <p class="eyebrow">Photo gallery</p>
-          <h2 id="drive-gallery-title">Spruce Lodge</h2>
+        <details class="gallery-details">
+          <summary class="gallery-summary">
+            <span class="section-heading">
+              <span class="eyebrow">Photo gallery</span>
+              <span class="gallery-summary-title" id="drive-gallery-title">
+                Spruce Lodge
+              </span>
+            </span>
+          </summary>
 
-        </div>
+          <div class="gallery-details-body">
+            <div class="photo-wall" hidden></div>
 
-        <div class="photo-wall" hidden></div>
+            <div class="drive-gallery-frame gallery-fallback">
+              <iframe
+                title="Google Drive gallery of Spruce Lodge photos"
+                src="https://drive.google.com/embeddedfolderview?id=1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm#grid"
+                loading="lazy"
+              ></iframe>
+            </div>
 
-        <div class="drive-gallery-frame gallery-fallback">
-          <iframe
-            title="Google Drive gallery of Spruce Lodge photos"
-            src="https://drive.google.com/embeddedfolderview?id=1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm#grid"
-            loading="lazy"
-          ></iframe>
-        </div>
-
-        <div class="gallery-actions">
-          <a
-            class="button"
-            href="https://drive.google.com/drive/folders/1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm?usp=sharing"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open photos in Google Drive
-          </a>
-        </div>
+            <div class="gallery-actions">
+              <a
+                class="button"
+                href="https://drive.google.com/drive/folders/1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open photos in Google Drive
+              </a>
+            </div>
+          </div>
+        </details>
       </section>
     </main>
 
