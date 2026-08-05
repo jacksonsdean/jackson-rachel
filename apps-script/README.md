@@ -146,7 +146,7 @@ The real constraint is storage, below.
 **Storage is yours.** Uploads count against your Google account's quota. A
 hundred guests uploading videos will eat through a free 15 GB tier quickly —
 worth checking your available space beforehand. The upload page points guests
-at wedding@jacksonsdean.com if a file refuses to go through.
+at photos@jackson-rachel.com if a file refuses to go through.
 
 **Big files don't pass through the script.** For each file, the script asks
 Drive for a resumable upload session and hands the URL to the browser, which
