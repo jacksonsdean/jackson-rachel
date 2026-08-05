@@ -11,7 +11,7 @@ works.
 
 ## 1. Drive folders
 
-Two folders, already created and already filled in throughout this repo:
+Three folders, already created and already filled in throughout this repo:
 
 | Folder | ID | Sharing | Purpose |
 | --- | --- | --- | --- |
@@ -19,12 +19,13 @@ Two folders, already created and already filled in throughout this repo:
 | Private uploads | `1lfmrbVVMBBGkwXFPF_ORgQOv1AhnYVp6` | **Private** — do not share | Uploads the guest ticked "keep these private". Kept out of the pile you curate from, so one cannot be published by accident. |
 | Guest photos (public) | `110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg` | **Anyone with the link → Viewer** | What the website shows. You move the good stuff here. |
 
-Two folders is the whole moderation story: an upload is never publicly visible
-until you move it, so one bad file can't end up on the site.
+Separate folders are the whole moderation story: an upload is never publicly
+visible until you move it, so one bad file can't end up on the site.
 
-**Check the sharing on both** before going live — the inbox must be private,
-and the public folder must be set to *Anyone with the link → Viewer* or the
-gallery and the home page preview will come up empty for signed-out guests.
+**Check the sharing on all three** before going live — both upload folders must
+be private, and the public folder must be set to *Anyone with the link →
+Viewer* or the gallery and the home page preview will come up empty for
+signed-out guests.
 
 ## 2. Create the Apps Script project
 
@@ -75,13 +76,13 @@ actually a photo or video.
    - Type: `Hour timer` → `Every hour`
 3. Save.
 
-Quarantined files go to a `_quarantine` subfolder inside the inbox rather than
-being deleted, so a false positive is recoverable.
+It sweeps both upload folders. Quarantined files go to a `_quarantine`
+subfolder rather than being deleted, so a false positive is recoverable.
 
 ## 4b. Turn on upload notifications (optional)
 
-Emails a digest of anything new in the inbox, grouped by who sent it, with a
-link to each file.
+Emails a digest of anything new in either upload folder, grouped by who sent
+it, with a link to each file and a note on which ones were marked private.
 
 1. Triggers → **Add Trigger**:
    - Function: `notifyNewUploads`
@@ -159,7 +160,13 @@ fallback only returns if every thumbnail in a panel fails.
 **Seeing who sent what:** the uploader's name is prefixed onto the filename,
 so sorting the folder by name groups uploads by person. It's also in each
 file's description, and stored as machine-readable custom properties
-(`uploadedBy`, `uploadedAt`, `originalName`).
+(`uploadedBy`, `uploadedAt`, `originalName`, `visibility`).
+
+**Private uploads:** a guest can tick "Keep these private" on the upload page,
+per file or for the whole batch. Those land in the private uploads folder
+instead, with "marked private, do not publish" in the description. Keeping them
+in a separate folder means curating the public gallery never puts you one
+mis-click away from publishing one.
 
 ---
 
@@ -168,7 +175,7 @@ file's description, and stored as machine-readable custom properties
 **The endpoint is public by design.** The `/exec` URL is visible in the page
 source. `ALLOWED_ORIGINS` stops it being embedded on someone else's page, but
 it isn't a real access control — anyone determined can POST to it directly.
-Backstops: the 2 GB per-file cap, the image/video-only check, the hourly
+Backstops: the 10 GB per-file cap, the image/video-only check, the hourly
 `sweepInbox` re-check, and the 300-uploads-per-hour circuit breaker in
 `MAX_FILES_PER_HOUR`. For a wedding site that's proportionate. If you ever need
 to shut it off, either **Deploy → Manage deployments → Archive**, or blank out
