@@ -16,7 +16,11 @@
 var CONFIG = {
   /* The PRIVATE folder guests upload into. Guests cannot read it — you move
    * approved files into the public folder yourself. */
-  INBOX_FOLDER_ID: "PASTE_INBOX_FOLDER_ID_HERE",
+  INBOX_FOLDER_ID: "1WikYF5aLxqL1ji4b_AKw1ir80um15Mm_",
+
+  /* The PUBLIC folder (shared "anyone with the link"). Only used to build the
+   * little preview strip on the home page. */
+  PUBLIC_FOLDER_ID: "110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg",
 
   /* Origins allowed to use this endpoint. Keeps the URL from being used as a
    * free upload relay by someone else's page. */
@@ -26,10 +30,15 @@ var CONFIG = {
     "https://jacksonsdean.github.io",
   ],
 
-  MAX_FILE_BYTES: 2 * 1024 * 1024 * 1024, // 2 GB per file
+  /* Drive itself allows 5 TB per file, so this is our own sanity ceiling
+   * rather than a platform limit — it just stops one enormous file eating the
+   * account's storage quota. Raise or lower it freely; the real constraint is
+   * how much Drive space the account has. */
+  MAX_FILE_BYTES: 10 * 1024 * 1024 * 1024, // 10 GB per file
   MAX_DIRECT_BYTES: 25 * 1024 * 1024, // ceiling for the base64 fallback path
   MAX_FILES_PER_HOUR: 300, // circuit breaker against abuse
   MAX_NAME_LENGTH: 60,
+  PREVIEW_CACHE_SECONDS: 300,
 };
 
 /* Extensions we accept, and the type we assume when the browser reports none.
@@ -61,13 +70,68 @@ var EXTENSION_TYPES = {
 
 /* -------------------------------------------------------------- endpoints */
 
-/** Sanity check: open the /exec URL in a browser and you should see ok: true. */
-function doGet() {
+/**
+ * ?action=preview lists the newest files in the PUBLIC folder so the home page
+ * can show a small preview strip. With no action, it is a health check: open
+ * the /exec URL in a browser and you should see ok: true.
+ */
+function doGet(e) {
+  var params = (e && e.parameter) || {};
+  if (params.action === "preview") {
+    return jsonOutput_(preview_(Number(params.limit) || 4));
+  }
   return jsonOutput_({
     ok: true,
     service: "wedding-uploads",
     configured: CONFIG.INBOX_FOLDER_ID.indexOf("PASTE_") !== 0,
   });
+}
+
+/** Newest public photos/videos, as {id, name}. Cached, since the home page
+ * asks for this on every visit and the folder rarely changes. */
+function preview_(limit) {
+  limit = Math.max(1, Math.min(24, limit));
+  if (!CONFIG.PUBLIC_FOLDER_ID || CONFIG.PUBLIC_FOLDER_ID.indexOf("PASTE_") === 0) {
+    return { ok: false, error: "No public folder configured." };
+  }
+
+  var cache = CacheService.getScriptCache();
+  var key = "preview-" + limit;
+  var cached = cache.get(key);
+  if (cached) return JSON.parse(cached);
+
+  try {
+    var found = [];
+    var files = DriveApp.getFolderById(CONFIG.PUBLIC_FOLDER_ID).getFiles();
+    while (files.hasNext()) {
+      var file = files.next();
+      var mimeType = String(file.getMimeType() || "");
+      if (mimeType.indexOf("image/") !== 0 && mimeType.indexOf("video/") !== 0) {
+        continue;
+      }
+      found.push({
+        id: file.getId(),
+        name: file.getName(),
+        created: file.getDateCreated().getTime(),
+      });
+    }
+
+    found.sort(function (a, b) {
+      return b.created - a.created;
+    });
+
+    var payload = {
+      ok: true,
+      files: found.slice(0, limit).map(function (file) {
+        return { id: file.id, name: file.name };
+      }),
+    };
+    cache.put(key, JSON.stringify(payload), CONFIG.PREVIEW_CACHE_SECONDS);
+    return payload;
+  } catch (error) {
+    console.error(error);
+    return { ok: false, error: "Could not read the gallery folder." };
+  }
 }
 
 function doPost(e) {
@@ -129,7 +193,13 @@ function validate_(request) {
 
   var size = Number(request.size);
   if (!isFinite(size) || size <= 0) throw new Error("That file looks empty.");
-  if (size > CONFIG.MAX_FILE_BYTES) throw new Error("That file is over the 2 GB limit.");
+  if (size > CONFIG.MAX_FILE_BYTES) {
+    throw new Error(
+      "That file is over the " +
+        Math.round(CONFIG.MAX_FILE_BYTES / (1024 * 1024 * 1024)) +
+        " GB limit."
+    );
+  }
 
   var extension = extensionOf_(original);
   var claimed = String(request.mimeType || "").toLowerCase();

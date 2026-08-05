@@ -17,5 +17,5 @@ window.WEDDING_CONFIG = {
    * "Anyone with the link -> Viewer"). This is the folder you move approved
    * uploads into. It is NOT the private inbox folder.
    */
-  guestPhotosFolderId: "",
+  guestPhotosFolderId: "110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg",
 };

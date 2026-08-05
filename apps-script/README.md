@@ -9,24 +9,21 @@ works.
 
 ---
 
-## 1. Make two Drive folders
+## 1. Drive folders
 
-In Google Drive, create:
+Two folders, already created and already filled in throughout this repo:
 
-| Folder | Sharing | Purpose |
-| --- | --- | --- |
-| **Wedding Uploads (Inbox)** | **Private** — do not share | Where guest uploads land. Nobody but you can see it. |
-| **Wedding Guest Photos** | **Anyone with the link → Viewer** | What the website shows. You move the good stuff here. |
+| Folder | ID | Sharing | Purpose |
+| --- | --- | --- | --- |
+| Uploads (inbox) | `1WikYF5aLxqL1ji4b_AKw1ir80um15Mm_` | **Private** — do not share | Where guest uploads land. Nobody but you can see it. |
+| Guest photos (public) | `110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg` | **Anyone with the link → Viewer** | What the website shows. You move the good stuff here. |
 
 Two folders is the whole moderation story: an upload is never publicly visible
 until you move it, so one bad file can't end up on the site.
 
-Grab each folder's ID from its URL — the long string after `/folders/`:
-
-```
-https://drive.google.com/drive/folders/1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm
-                                       └──────── this part ────────┘
-```
+**Check the sharing on both** before going live — the inbox must be private,
+and the public folder must be set to *Anyone with the link → Viewer* or the
+gallery and the home page preview will come up empty for signed-out guests.
 
 ## 2. Create the Apps Script project
 
@@ -40,9 +37,8 @@ https://drive.google.com/drive/folders/1qmCJA5mvrrd460VDr8Zt2z7eJ9CQMUVm
    of [`appsscript.json`](appsscript.json) from this folder. (This is what
    grants the Drive scope — without it the upload calls fail with a
    permissions error.)
-6. At the top of `Code.gs`, set `INBOX_FOLDER_ID` to the **inbox** folder ID
-   from step 1. Leave `ALLOWED_ORIGINS` alone unless the site moves domains.
-7. Save.
+6. Save. The folder IDs and allowed origins at the top of `Code.gs` are
+   already filled in — nothing to edit.
 
 ## 3. Deploy it
 
@@ -62,7 +58,7 @@ Paste that URL into a browser tab. You should see:
 {"ok":true,"service":"wedding-uploads","configured":true}
 ```
 
-If `configured` is `false`, you missed step 2.6.
+If `configured` is `false`, the folder IDs did not make it into `Code.gs`.
 
 ## 4. Turn on the hourly sweep
 
@@ -83,18 +79,20 @@ being deleted, so a false positive is recoverable.
 
 ## 5. Wire up the website
 
-Edit [`../config.js`](../config.js) in this repo:
+One line to change in [`../config.js`](../config.js) — paste the `/exec` URL
+from step 3:
 
 ```js
 window.WEDDING_CONFIG = {
   uploadEndpoint: "https://script.google.com/macros/s/AKfycb.../exec",
-  guestPhotosFolderId: "1AbC...",  // the PUBLIC folder from step 1
+  guestPhotosFolderId: "110gCPE3_3fWf0DM-CaNE_MGPTt7wPQgg",  // already set
 };
 ```
 
 Commit and push. Until `uploadEndpoint` is filled in, the upload page shows a
-polite "not ready yet" message instead of a broken form, and the guest gallery
-section stays hidden — so it is safe to merge before you've done any of this.
+polite "not ready yet" message instead of a broken form and the home page
+preview strip stays hidden — so it is safe to merge before you've done any of
+this.
 
 ## 6. Test it
 
@@ -113,8 +111,12 @@ phone. Check that:
 
 **Publishing photos:** open the inbox folder, select the ones you want, drag
 them into the public folder. They show up on the site within a few minutes
-(Drive's embedded folder view caches, and video thumbnails take a moment to
-generate).
+(Drive's embedded folder view caches, the script caches the home page preview
+for five minutes, and video thumbnails take a moment to generate).
+
+**The home page preview** shows the four newest files in the public folder. It
+is decorative — if the script is unreachable the strip just stays hidden and
+the card keeps its heading and link.
 
 **Seeing who sent what:** the uploader's name is prefixed onto the filename,
 so sorting the folder by name groups uploads by person. It's also in each
@@ -134,9 +136,17 @@ Backstops: the 2 GB per-file cap, the image/video-only check, the hourly
 to shut it off, either **Deploy → Manage deployments → Archive**, or blank out
 `uploadEndpoint` in `config.js`.
 
+**File size.** Drive's own limits are 5 TB per file and 750 GB uploaded per
+day, neither of which a wedding will get near. The 10 GB cap in
+`MAX_FILE_BYTES` is ours, not Google's — it only stops one enormous file
+eating the account's storage. Change the number and redeploy to move it (and
+match `MAX_BYTES` in `../upload.js` plus the hint text in `../upload.html`).
+The real constraint is storage, below.
+
 **Storage is yours.** Uploads count against your Google account's quota. A
 hundred guests uploading videos will eat through a free 15 GB tier quickly —
-worth checking your available space beforehand.
+worth checking your available space beforehand. The upload page points guests
+at wedding@jacksonsdean.com if a file refuses to go through.
 
 **Big files don't pass through the script.** For each file, the script asks
 Drive for a resumable upload session and hands the URL to the browser, which

@@ -19,7 +19,7 @@
   var CONFIG = window.WEDDING_CONFIG || {};
   var ENDPOINT = (CONFIG.uploadEndpoint || "").trim();
 
-  var MAX_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB, matches the Apps Script cap
+  var MAX_BYTES = 10 * 1024 * 1024 * 1024; // must match MAX_FILE_BYTES in Code.gs
   var MAX_FILES = 40; // per batch, keeps a stray folder-drop from flooding us
   var FALLBACK_MAX_BYTES = 25 * 1024 * 1024; // base64 fallback ceiling
   var MAX_ATTEMPTS = 3;
@@ -149,7 +149,7 @@
 
   function describeProblem(file) {
     if (file.size === 0) return "This file looks empty.";
-    if (file.size > MAX_BYTES) return "Too big — the limit is 2 GB per file.";
+    if (file.size > MAX_BYTES) return "Too big — the limit is 10 GB per file.";
     if (!resolveType(file)) return "Only photos and videos, please.";
     return "";
   }
