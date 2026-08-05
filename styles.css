@@ -391,6 +391,8 @@ h3 {
 
 .gallery-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: center;
   margin-top: 22px;
 }
@@ -548,6 +550,48 @@ h3 {
   opacity: 1;
 }
 
+/* Shimmer while Drive hands over the thumbnail. */
+.photo-tile::before,
+.preview-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 24%,
+    rgba(255, 250, 241, 0.6) 50%,
+    transparent 76%
+  );
+  background-size: 220% 100%;
+  animation: tile-shimmer 1.5s ease-in-out infinite;
+}
+
+.photo-tile.is-loaded::before,
+.photo-tile.is-failed::before,
+.preview-tile.is-loaded::before {
+  content: none;
+}
+
+.preview-tile {
+  position: relative;
+}
+
+@keyframes tile-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-tile::before,
+  .preview-tile::before {
+    animation: none;
+  }
+}
+
 /* Play badge, so a video reads as a video before you open it. */
 .photo-tile.is-video::after {
   content: "";
@@ -590,6 +634,7 @@ body.has-lightbox {
 }
 
 .lightbox-stage {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -603,8 +648,40 @@ body.has-lightbox {
   display: block;
   border: 0;
   border-radius: var(--radius);
-  background: rgba(255, 250, 241, 0.06);
+  background: rgba(255, 250, 241, 0.06) center / cover no-repeat;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+/* Spinner while the full-size photo arrives. */
+.lightbox-stage.is-loading {
+  min-width: 140px;
+  min-height: 140px;
+}
+
+.lightbox-stage.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 3px solid rgba(255, 250, 241, 0.28);
+  border-top-color: rgba(255, 250, 241, 0.9);
+  border-radius: 50%;
+  animation: lightbox-spin 800ms linear infinite;
+}
+
+@keyframes lightbox-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox-stage.is-loading::after {
+    animation-duration: 2.4s;
+  }
 }
 
 .lightbox-media.is-video {

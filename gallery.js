@@ -122,6 +122,7 @@
   function render(state) {
     var item = state.items[state.index];
     state.stage.innerHTML = "";
+    state.stage.classList.add("is-loading");
 
     if (item.kind === "video") {
       var frame = document.createElement("iframe");
@@ -129,13 +130,32 @@
       frame.setAttribute("allow", "autoplay; fullscreen");
       frame.setAttribute("allowfullscreen", "");
       frame.title = displayName(item.name);
+      frame.addEventListener("load", function () {
+        state.stage.classList.remove("is-loading");
+      });
       frame.src = previewUrl(item.id);
       state.stage.appendChild(frame);
     } else {
       var image = document.createElement("img");
       image.className = "lightbox-media";
       image.alt = displayName(item.name);
-      image.src = thumbUrl(item.id, 1600);
+
+      /* Show the grid's thumbnail first — it is already in cache, so it
+       * appears instantly — then swap in the full-size one behind the
+       * spinner. */
+      image.src = thumbUrl(item.id, 600);
+
+      var full = new Image();
+      full.addEventListener("load", function () {
+        if (state.items[state.index] !== item) return; /* moved on already */
+        image.src = full.src;
+        state.stage.classList.remove("is-loading");
+      });
+      full.addEventListener("error", function () {
+        state.stage.classList.remove("is-loading");
+      });
+      full.src = thumbUrl(item.id, 1600);
+
       state.stage.appendChild(image);
     }
 
@@ -182,53 +202,160 @@
 
   /* ------------------------------------------------------------------ grids */
 
+  /*
+   * Drive is slow to hand over thumbnails and gets slower the more you ask for
+   * at once, so tiles go up immediately as shimmering placeholders and their
+   * images are fetched a few at a time. A thumbnail that fails is retried
+   * before it is given up on — a single dropped request should never cost us
+   * a photo, and it certainly should not cost us the gallery.
+   */
+  var MAX_CONCURRENT_IMAGES = 6;
+  var MAX_IMAGE_ATTEMPTS = 3;
+  var MAX_LIST_ATTEMPTS = 3;
+
+  function loadImage(file, tile, image, done) {
+    var attempt = 0;
+
+    function attemptLoad() {
+      attempt += 1;
+      image.src = thumbUrl(file.id, 600);
+    }
+
+    image.addEventListener("load", function () {
+      tile.classList.add("is-loaded");
+      done(true);
+    });
+
+    image.addEventListener("error", function () {
+      if (attempt < MAX_IMAGE_ATTEMPTS) {
+        window.setTimeout(attemptLoad, 800 * attempt * attempt);
+        return;
+      }
+      tile.classList.add("is-failed");
+      done(false);
+    });
+
+    attemptLoad();
+  }
+
+  /** Runs jobs a few at a time; calls back with how many failed. */
+  function runQueue(jobs, limit, whenDone) {
+    var started = 0;
+    var finished = 0;
+    var failed = 0;
+    var active = 0;
+
+    function pump() {
+      while (active < limit && started < jobs.length) {
+        active += 1;
+        jobs[started++](function (ok) {
+          active -= 1;
+          finished += 1;
+          if (!ok) failed += 1;
+          if (finished === jobs.length) whenDone(failed);
+          else pump();
+        });
+      }
+    }
+
+    if (!jobs.length) whenDone(0);
+    else pump();
+  }
+
+  /* A gallery built from several Drive folders cannot have one "open in
+   * Drive" button, so give it one per folder, named after the folder. */
+  function fillActions(panel, sources) {
+    if (!sources || sources.length < 2) return;
+    var actions = panel.querySelector(".gallery-actions");
+    if (!actions) return;
+
+    actions.innerHTML = "";
+    sources.forEach(function (source) {
+      var link = document.createElement("a");
+      link.className = "button";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.href =
+        "https://drive.google.com/drive/folders/" + encodeURIComponent(source.id);
+      link.textContent = source.name;
+      actions.appendChild(link);
+    });
+  }
+
   function fillPanel(panel, files) {
     var wall = panel.querySelector(".photo-wall");
     var fallback = panel.querySelector(".gallery-fallback");
     if (!wall) return;
 
-    files.forEach(function (file, index) {
+    var tiles = [];
+    var jobs = files.map(function (file, index) {
       var tile = document.createElement("button");
       tile.type = "button";
       tile.className = "photo-tile" + (file.kind === "video" ? " is-video" : "");
       tile.setAttribute("aria-label", "Open " + displayName(file.name));
 
       var image = document.createElement("img");
-      image.loading = index < 8 ? "eager" : "lazy";
       image.alt = "";
-      image.addEventListener("load", function () {
-        tile.classList.add("is-loaded");
-      });
-      image.addEventListener("error", function () {
-        tile.remove();
-      });
-      image.src = thumbUrl(file.id, 600);
 
       tile.appendChild(image);
       tile.addEventListener("click", function () {
         open(files, index);
       });
       wall.appendChild(tile);
+      tiles.push(tile);
+
+      return function (done) {
+        loadImage(file, tile, image, done);
+      };
     });
 
+    /* Placeholders are up, so the Drive view has nothing left to do. */
     wall.hidden = false;
     if (fallback) fallback.hidden = true;
+
+    runQueue(jobs, MAX_CONCURRENT_IMAGES, function (failed) {
+      if (failed === jobs.length) {
+        /* Every single thumbnail failed — Drive is genuinely unreachable, so
+         * put the embedded folder view back rather than show an empty wall. */
+        wall.hidden = true;
+        wall.innerHTML = "";
+        if (fallback) fallback.hidden = false;
+        return;
+      }
+      tiles.forEach(function (tile) {
+        if (tile.classList.contains("is-failed")) tile.remove();
+      });
+    });
+  }
+
+  function fetchListing(url, attempts) {
+    return fetch(url)
+      .then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+      })
+      .catch(function (error) {
+        if (attempts <= 1) throw error;
+        return new Promise(function (resolve) {
+          window.setTimeout(resolve, 1000 * (MAX_LIST_ATTEMPTS - attempts + 1));
+        }).then(function () {
+          return fetchListing(url, attempts - 1);
+        });
+      });
   }
 
   function load(panel) {
     var folder = panel.getAttribute("data-gallery-folder");
     var limit = panel.getAttribute("data-gallery-limit") || 120;
 
-    fetch(
+    fetchListing(
       ENDPOINT +
         "?action=list&folder=" +
         encodeURIComponent(folder) +
         "&limit=" +
-        encodeURIComponent(limit)
+        encodeURIComponent(limit),
+      MAX_LIST_ATTEMPTS
     )
-      .then(function (response) {
-        return response.json();
-      })
       .then(function (data) {
         /* Listing failed: leave the embedded Drive folder view in place. */
         if (!data.ok || !data.files) return;
@@ -241,10 +368,11 @@
         }
 
         panel.hidden = false;
+        fillActions(panel, data.sources);
         fillPanel(panel, data.files);
       })
       .catch(function () {
-        /* Same as a failed listing — keep the fallback. */
+        /* Out of retries — keep the fallback. */
       });
   }
 

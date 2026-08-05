@@ -13,6 +13,7 @@
   var CONFIG = window.WEDDING_CONFIG || {};
   var ENDPOINT = (CONFIG.uploadEndpoint || "").trim();
   var TILE_COUNT = 4;
+  var MAX_ATTEMPTS = 3;
 
   var strip = document.getElementById("gallery-preview");
   if (!strip || !ENDPOINT) return;
@@ -36,14 +37,26 @@
 
         var image = document.createElement("img");
         image.alt = "";
+
+        /* Drive can be slow, and occasionally drops a request outright. The
+         * tile shimmers until its image lands and retries before giving up,
+         * rather than vanishing at the first failure. */
+        var attempt = 0;
+        function attemptLoad() {
+          attempt += 1;
+          image.src = thumbnailUrl(file.id);
+        }
         image.addEventListener("load", function () {
           tile.classList.add("is-loaded");
         });
-        /* A thumbnail that will not render is worse than one fewer tile. */
         image.addEventListener("error", function () {
+          if (attempt < MAX_ATTEMPTS) {
+            window.setTimeout(attemptLoad, 800 * attempt * attempt);
+            return;
+          }
           tile.remove();
         });
-        image.src = thumbnailUrl(file.id);
+        attemptLoad();
 
         tile.appendChild(image);
         strip.appendChild(tile);
