@@ -77,6 +77,26 @@ actually a photo or video.
 Quarantined files go to a `_quarantine` subfolder inside the inbox rather than
 being deleted, so a false positive is recoverable.
 
+## 4b. Turn on upload notifications (optional)
+
+Emails a digest of anything new in the inbox, grouped by who sent it, with a
+link to each file.
+
+1. Triggers → **Add Trigger**:
+   - Function: `notifyNewUploads`
+   - Event source: `Time-driven`
+   - Type: `Minutes timer` → `Every 15 minutes`
+2. Save. Google will ask to authorise sending mail the first time.
+
+It goes to `NOTIFY_EMAIL` at the top of `Code.gs` — set to
+`photos@jackson-rachel.com`. Blank that out to turn notifications off.
+
+It is a digest rather than an email per upload for two reasons: the script
+opens the upload session but the bytes land afterwards, so an email at that
+moment would announce files that might never arrive; and one guest sending
+twenty photos would mean twenty emails. The first run only looks back an hour,
+so switching it on does not mail a summary of everything uploaded so far.
+
 ## 5. Wire up the website
 
 One line to change in [`../config.js`](../config.js) — paste the `/exec` URL
