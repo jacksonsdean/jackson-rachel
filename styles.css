@@ -543,6 +543,12 @@ h3 {
   box-shadow: 0 20px 42px rgba(59, 75, 46, 0.18);
 }
 
+/* Stand-ins shown while the listing is still on its way. */
+.photo-tile.is-skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
 .photo-tile:focus-visible {
   border-color: var(--accent);
 }

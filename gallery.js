@@ -282,10 +282,46 @@
     });
   }
 
+  /*
+   * The embedded Drive view lives in the HTML so the gallery still works
+   * without us, but leaving it on screen until the listing arrives means a
+   * second or two of the old gallery flashing past. So it comes down the
+   * moment we take charge of the panel, and skeleton tiles stand in until the
+   * real ones are ready. showFallback() puts it back if we cannot deliver.
+   */
+  var SKELETON_TILES = 8;
+
+  function claimPanel(panel) {
+    var wall = panel.querySelector(".photo-wall");
+    var fallback = panel.querySelector(".gallery-fallback");
+    if (fallback) fallback.hidden = true;
+    if (!wall) return;
+
+    wall.innerHTML = "";
+    for (var i = 0; i < SKELETON_TILES; i += 1) {
+      var tile = document.createElement("div");
+      tile.className = "photo-tile is-skeleton";
+      wall.appendChild(tile);
+    }
+    wall.hidden = false;
+  }
+
+  function showFallback(panel) {
+    var wall = panel.querySelector(".photo-wall");
+    var fallback = panel.querySelector(".gallery-fallback");
+    if (wall) {
+      wall.innerHTML = "";
+      wall.hidden = true;
+    }
+    if (fallback) fallback.hidden = false;
+  }
+
   function fillPanel(panel, files) {
     var wall = panel.querySelector(".photo-wall");
     var fallback = panel.querySelector(".gallery-fallback");
     if (!wall) return;
+
+    wall.innerHTML = ""; /* clear the skeletons */
 
     var tiles = [];
     var jobs = files.map(function (file, index) {
@@ -309,7 +345,6 @@
       };
     });
 
-    /* Placeholders are up, so the Drive view has nothing left to do. */
     wall.hidden = false;
     if (fallback) fallback.hidden = true;
 
@@ -317,9 +352,7 @@
       if (failed === jobs.length) {
         /* Every single thumbnail failed — Drive is genuinely unreachable, so
          * put the embedded folder view back rather than show an empty wall. */
-        wall.hidden = true;
-        wall.innerHTML = "";
-        if (fallback) fallback.hidden = false;
+        showFallback(panel);
         return;
       }
       tiles.forEach(function (tile) {
@@ -348,6 +381,8 @@
     var folder = panel.getAttribute("data-gallery-folder");
     var limit = panel.getAttribute("data-gallery-limit") || 120;
 
+    claimPanel(panel);
+
     fetchListing(
       ENDPOINT +
         "?action=list&folder=" +
@@ -357,8 +392,11 @@
       MAX_LIST_ATTEMPTS
     )
       .then(function (data) {
-        /* Listing failed: leave the embedded Drive folder view in place. */
-        if (!data.ok || !data.files) return;
+        /* Listing failed: hand the panel back to the Drive folder view. */
+        if (!data.ok || !data.files) {
+          showFallback(panel);
+          return;
+        }
 
         /* Listing worked and the folder is empty: hide the panel outright.
          * An empty Drive iframe is worse than no section at all. */
@@ -372,7 +410,8 @@
         fillPanel(panel, data.files);
       })
       .catch(function () {
-        /* Out of retries — keep the fallback. */
+        /* Out of retries — hand the panel back to the Drive folder view. */
+        showFallback(panel);
       });
   }
 
