@@ -115,8 +115,10 @@ function listFolder_(folderKey, limit) {
   var folderIds = [].concat(entry);
   limit = Math.max(1, Math.min(CONFIG.MAX_LIST, limit));
 
+  /* The folder IDs are part of the key, so pointing a key at different
+   * folders can never serve the previous folders' cached listing. */
   var cache = CacheService.getScriptCache();
-  var key = "list-" + folderKey + "-" + limit;
+  var key = "list-" + folderKey + "-" + folderIds.join("+") + "-" + limit;
   var cached = cache.get(key);
   if (cached) return JSON.parse(cached);
 
