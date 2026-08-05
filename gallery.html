@@ -53,6 +53,42 @@
           </a>
         </div>
       </section>
+
+      <section
+        class="feature-panel gallery-panel"
+        id="guest-gallery-panel"
+        aria-labelledby="guest-gallery-title"
+        hidden
+      >
+        <div class="section-heading">
+          <p class="eyebrow">From everyone</p>
+          <h2 id="guest-gallery-title">Guest photos</h2>
+          <p>
+            Photos and videos shared by guests over the weekend.
+            <a class="text-link" href="upload.html">Add yours</a>
+          </p>
+        </div>
+
+        <div class="drive-gallery-frame">
+          <iframe
+            id="guest-gallery-frame"
+            title="Google Drive gallery of guest photos"
+            loading="lazy"
+          ></iframe>
+        </div>
+
+        <div class="gallery-actions">
+          <a
+            class="button"
+            id="guest-gallery-link"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open guest photos in Google Drive
+          </a>
+        </div>
+      </section>
 <!-- 
       <section class="feature-panel local-gallery-panel" aria-labelledby="local-gallery-title">
         <div class="section-heading">
@@ -93,5 +129,8 @@
         </div>
       </section> -->
     </main>
+
+    <script src="config.js"></script>
+    <script src="guest-gallery.js"></script>
   </body>
 </html>

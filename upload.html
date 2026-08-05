@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Share your photos | Jackson &amp; Rachel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <nav class="top-nav" aria-label="Site navigation">
+        <a class="text-link-back" href="index.html">Back to wedding info</a>
+      </nav>
+
+      <section class="hero" aria-labelledby="page-title">
+        <p class="eyebrow">Rachel &amp; Jackson's</p>
+        <h1 id="page-title">Photos</h1>
+      </section>
+
+      <section class="feature-panel upload-panel" aria-labelledby="upload-title">
+        <div class="section-heading">
+          <p class="eyebrow">Guest uploads</p>
+          <h2 id="upload-title">Share what you captured</h2>
+          <p>
+            Photos and videos from the weekend are so welcome. No account, no app,
+            no sign-in — just add your name so we know who to thank, and drop your
+            files below.
+          </p>
+        </div>
+
+        <div class="upload-notice" id="upload-unavailable" hidden>
+          <h3>Not quite ready</h3>
+          <p>
+            Guest uploads are not switched on yet. Check back a little closer to the
+            weekend.
+          </p>
+        </div>
+
+        <form class="upload-form" id="upload-form" hidden novalidate>
+          <label class="field" for="uploader-name">
+            <span class="field-label">Your name</span>
+            <input
+              id="uploader-name"
+              name="uploader-name"
+              type="text"
+              maxlength="60"
+              autocomplete="name"
+              placeholder="So we know who these are from"
+              required
+            />
+            <span class="field-error" id="name-error" hidden>
+              Please add your name first.
+            </span>
+          </label>
+
+          <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-describedby="dropzone-hint">
+            <p class="dropzone-title">Drag photos &amp; videos here</p>
+            <p class="dropzone-hint" id="dropzone-hint">
+              or tap to choose from your device — JPG, PNG, HEIC, MP4, MOV and
+              friends, up to 10&nbsp;GB each
+            </p>
+            <input
+              id="file-input"
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              hidden
+            />
+          </div>
+
+          <ul class="file-list" id="file-list" aria-label="Files selected for upload"></ul>
+
+          <div class="upload-actions">
+            <button class="button button-solid" id="upload-button" type="submit" disabled>
+              Upload
+            </button>
+            <p class="upload-status" id="upload-status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="upload-fineprint">
+            <p>
+              Uploads go straight to our private Drive folder. Give them a few
+              minutes to show up on the guest gallery — we peek at them first.
+            </p>
+            <p>
+              Would rather your photos weren't shared with the other guests? Email
+              them to
+              <a class="fineprint-link" href="mailto:photos@jackson-rachel.com">photos@jackson-rachel.com</a>
+              with a note and we'll keep them just for us. Same address if anything
+              refuses to upload here.
+            </p>
+          </div>
+        </form>
+      </section>
+
+      <section
+        class="feature-panel gallery-panel"
+        id="guest-gallery-panel"
+        aria-labelledby="guest-gallery-title"
+        hidden
+      >
+        <div class="section-heading">
+          <p class="eyebrow">From everyone</p>
+          <h2 id="guest-gallery-title">Guest gallery</h2>
+          <p>Photos and videos shared by other guests over the weekend.</p>
+        </div>
+
+        <div class="drive-gallery-frame">
+          <iframe
+            id="guest-gallery-frame"
+            title="Google Drive gallery of guest photos"
+            loading="lazy"
+          ></iframe>
+        </div>
+
+        <div class="gallery-actions">
+          <a
+            class="button button-solid"
+            id="guest-gallery-link"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open guest photos in Google Drive
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="guest-gallery.js"></script>
+    <script src="upload.js"></script>
+  </body>
+</html>
