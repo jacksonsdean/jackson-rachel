@@ -14,6 +14,9 @@
   var ENDPOINT = (CONFIG.uploadEndpoint || "").trim();
   var TILE_COUNT = 4;
   var MAX_ATTEMPTS = 3;
+  /* Matches the guest gallery's limit, so both pages share one cache entry
+   * in the script rather than each warming their own. */
+  var PREVIEW_POOL = 300;
 
   var strip = document.getElementById("gallery-preview");
   if (!strip || !ENDPOINT) return;
@@ -38,7 +41,15 @@
   }
   strip.hidden = false;
 
-  fetch(ENDPOINT + "?action=preview&limit=" + TILE_COUNT)
+  /*
+   * We want the first four photos anyone sent us, not the latest four.
+   * The endpoint only returns newest-first, so ask for the whole folder and
+   * take the tail: those are the earliest uploads, and because the list is
+   * newest-first they arrive in the order we want to show them — the very
+   * first upload last, at the right on a wide screen and the bottom on a
+   * narrow one.
+   */
+  fetch(ENDPOINT + "?action=list&folder=guests&limit=" + PREVIEW_POOL)
     .then(function (response) {
       return response.json();
     })
@@ -50,7 +61,7 @@
 
       strip.innerHTML = ""; /* clear the skeletons */
 
-      data.files.forEach(function (file) {
+      data.files.slice(-TILE_COUNT).forEach(function (file) {
         var tile = document.createElement("div");
         tile.className = "preview-tile";
 
