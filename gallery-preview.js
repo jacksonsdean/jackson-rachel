@@ -42,13 +42,35 @@
   strip.hidden = false;
 
   /*
-   * We want the first four photos anyone sent us, not the latest four.
-   * The endpoint only returns newest-first, so ask for the whole folder and
-   * take the tail: those are the earliest uploads, and because the list is
-   * newest-first they arrive in the order we want to show them — the very
-   * first upload last, at the right on a wide screen and the bottom on a
-   * narrow one.
+   * Picking the four tiles.
+   *
+   * A "~" anywhere in the file name marks a photo as one we want on the home
+   * page, so those come first. Whatever slots are left over fall back to the
+   * first four photos anyone sent us, not the latest four: the endpoint only
+   * returns newest-first, so ask for the whole folder and take the tail —
+   * those are the earliest uploads, and because the list is newest-first they
+   * arrive in the order we want to show them, the very first upload last, at
+   * the right on a wide screen and the bottom on a narrow one.
    */
+  function pickTiles(files) {
+    var picked = [];
+    var rest = [];
+
+    files.forEach(function (file) {
+      if ((file.name || "").indexOf("~") !== -1) {
+        picked.push(file);
+      } else {
+        rest.push(file);
+      }
+    });
+
+    /* Same tail rule within each group, so an over-full set of "~" photos
+     * still shows the earliest of them. */
+    picked = picked.slice(-TILE_COUNT);
+    var short = TILE_COUNT - picked.length;
+    return short > 0 ? picked.concat(rest.slice(-short)) : picked;
+  }
+
   fetch(ENDPOINT + "?action=list&folder=guests&limit=" + PREVIEW_POOL)
     .then(function (response) {
       return response.json();
@@ -61,7 +83,7 @@
 
       strip.innerHTML = ""; /* clear the skeletons */
 
-      data.files.slice(-TILE_COUNT).forEach(function (file) {
+      pickTiles(data.files).forEach(function (file) {
         var tile = document.createElement("div");
         tile.className = "preview-tile";
 
