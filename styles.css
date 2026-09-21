@@ -193,8 +193,10 @@ h3 {
 }
 
 .video-frame {
-  width: 100%;
-  aspect-ratio: 16 / 9;
+  width: min(100%, 960px);
+  height: min(64vh, 640px);
+  min-height: 420px;
+  margin: 0 auto;
   overflow: hidden;
   border-radius: var(--radius);
   background: #000;
@@ -1232,5 +1234,10 @@ body.has-lightbox {
 
   .drive-gallery-frame {
     min-height: 360px;
+  }
+
+  .video-frame {
+    height: 360px;
+    min-height: 0;
   }
 }
