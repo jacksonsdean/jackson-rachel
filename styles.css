@@ -207,6 +207,12 @@ h3 {
   border: 0;
 }
 
+.video-credit {
+  margin: 16px 0 0;
+  text-align: center;
+  color: var(--muted);
+}
+
 .highlight-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
